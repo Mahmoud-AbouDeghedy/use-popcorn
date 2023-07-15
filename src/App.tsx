@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type MovieT = {
 	imdbID: string;
@@ -57,12 +57,41 @@ const tempWatchedData = [
 	},
 ];
 
-// const average = (arr) =>
-// arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
+const average = (arr: number[]) =>
+	arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
+const KEY = "671ae6e0";
 export default function App() {
 	const [movies, setMovies] = useState(tempMovieData);
 	const [watched, setWatched] = useState(tempWatchedData);
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState("");
+
+	const query = "dasdas";
+
+	useEffect(() => {
+		async function fetchMovies() {
+			try {
+				setIsLoading(true);
+				const res = await fetch(
+					`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+				);
+				if (!res.ok) throw new Error("Error fetching movies");
+
+				const data = await res.json();
+				if (data.Response === "False") throw new Error("Movie not found");
+
+				setMovies(data.Search);
+				console.log(data);
+			} catch (err: any) {
+				console.error(err.message);
+				setError(err.message);
+			} finally {
+				setIsLoading(false);
+			}
+		}
+		fetchMovies();
+	}, []);
 
 	return (
 		<>
@@ -72,7 +101,9 @@ export default function App() {
 			</NavBar>
 			<Main>
 				<Box>
-					<MoviesList movies={movies} />
+					{isLoading && <Loader />}
+					{!isLoading && !error && <MoviesList movies={movies} />}
+					{error && <ErrorMessage message={error} />}
 				</Box>
 				<Box>
 					<WatchedSummary watched={watched} />
@@ -82,6 +113,20 @@ export default function App() {
 		</>
 	);
 }
+
+function Loader() {
+	return <p className="loader">Loading...</p>;
+}
+
+function ErrorMessage({ message }: { message: string }) {
+	return (
+		<p className="error">
+			<span>⛔</span>
+			{message}
+		</p>
+	);
+}
+
 function NavBar({ children }: { children: React.ReactNode }) {
 	return (
 		<nav className="nav-bar">
@@ -163,9 +208,14 @@ function Box({ children }: { children: React.ReactNode }) {
 }
 
 function WatchedSummary({ watched }: { watched: MovieT[] }) {
-	// const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
-	// const avgUserRating = average(watched.map((movie) => movie.userRating));
-	// const avgRuntime = average(watched.map((movie) => movie.runtime));
+	const imdbRatings: number[] = watched.map((movie) => movie.imdbRating!);
+	const userRatings: number[] = watched.map((movie) => movie.userRating!);
+	const runtimes: number[] = watched.map((movie) => movie.runtime!);
+
+	const avgImdbRating = average(imdbRatings);
+	const avgUserRating = average(userRatings);
+	const avgRuntime = average(runtimes);
+
 	return (
 		<div className="summary">
 			<h2>Movies you watched</h2>
@@ -176,15 +226,15 @@ function WatchedSummary({ watched }: { watched: MovieT[] }) {
 				</p>
 				<p>
 					<span>⭐️</span>
-					{/* <span>{avgImdbRating}</span> */}
+					<span>{avgImdbRating}</span>
 				</p>
 				<p>
 					<span>🌟</span>
-					{/* <span>{avgUserRating}</span> */}
+					<span>{avgUserRating}</span>
 				</p>
 				<p>
 					<span>⏳</span>
-					{/* <span>{avgRuntime} min</span> */}
+					<span>{avgRuntime} min</span>
 				</p>
 			</div>
 		</div>
