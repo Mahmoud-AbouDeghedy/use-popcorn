@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
 
+import StarRating from "./StarRating";
+
 type MovieT = {
-	imdbID: string;
-	Title: string;
-	Year: string;
-	Poster: string;
-	runtime?: number;
+	imdbID?: string;
+	Title?: string;
+	Year?: string;
+	Poster?: string;
+	Runtime?: number;
 	imdbRating?: number;
-	userRating?: number;
+	UserRating?: number;
+	Plot?: string;
+	Released?: string;
+	Actors?: string;
+	Director?: string;
+	Genre?: string;
 };
 
 const tempMovieData = [
@@ -41,9 +48,9 @@ const tempWatchedData = [
 		Year: "2010",
 		Poster:
 			"https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
-		runtime: 148,
+		Runtime: 148,
 		imdbRating: 8.8,
-		userRating: 10,
+		UserRating: 10,
 	},
 	{
 		imdbID: "tt0088763",
@@ -51,9 +58,9 @@ const tempWatchedData = [
 		Year: "1985",
 		Poster:
 			"https://m.media-amazon.com/images/M/MV5BZmU0M2Y1OGUtZjIxNi00ZjBkLTg1MjgtOWIyNThiZWIwYjRiXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg",
-		runtime: 116,
+		Runtime: 116,
 		imdbRating: 8.5,
-		userRating: 9,
+		UserRating: 9,
 	},
 ];
 
@@ -91,7 +98,6 @@ export default function App() {
 				if (data.Response === "False") throw new Error("Movie not found");
 
 				setMovies(data.Search);
-				console.log(data);
 			} catch (err: any) {
 				console.error(err.message);
 				setError(err.message);
@@ -204,7 +210,7 @@ function Movie({
 	onSelectId: (id: string) => void;
 }) {
 	return (
-		<li key={movie.imdbID} onClick={() => onSelectId(movie.imdbID)}>
+		<li key={movie.imdbID} onClick={() => onSelectId(movie.imdbID!)}>
 			<img src={movie.Poster} alt={`${movie.Title} poster`} />
 			<h3>{movie.Title}</h3>
 			<div>
@@ -240,12 +246,71 @@ function MovieDetails({
 	id: string;
 	onCloseMovie: () => void;
 }) {
+	const [movie, setMovie] = useState<MovieT>({});
+	const [isLoading, setIsLoading] = useState(false);
+
+	const {
+		Title: title,
+		Year: year,
+		Poster: poster,
+		Runtime: runtime,
+		imdbRating,
+		Plot: plot,
+		Released: released,
+		Actors: actors,
+		Director: director,
+		Genre: genre,
+	} = movie;
+
+	useEffect(() => {
+		async function getMovieDetails() {
+			setIsLoading(true);
+			const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&i=${id}`);
+			const data = await res.json();
+			setMovie(data);
+			setIsLoading(false);
+		}
+		getMovieDetails();
+	}, [id]);
+
 	return (
 		<div className="details">
-			<button className="btn-back" onClick={onCloseMovie}>
-				&larr;
-			</button>
-			{id}
+			{isLoading ? (
+				<Loader />
+			) : (
+				<>
+					<header>
+						<button className="btn-back" onClick={onCloseMovie}>
+							&larr;
+						</button>
+						<img src={poster} alt={`Poster of ${title} movie`} />
+						<div className="details-overview">
+							<h2>
+								{title} ({year})
+							</h2>
+							<p>
+								{released} &bull; {runtime}
+							</p>
+							<p>{genre}</p>
+							<p>
+								<span>⭐</span>
+								{imdbRating} IMdb rating
+							</p>
+						</div>
+					</header>
+
+					<section>
+						<div className="rating">
+							<StarRating maxRating={10} size={24} />
+						</div>
+						<p>
+							<em>{plot}</em>
+						</p>
+						<p>Starring {actors}</p>
+						<p>Directed by {director}</p>
+					</section>
+				</>
+			)}
 		</div>
 	);
 }
@@ -265,8 +330,8 @@ function Box({ children }: { children: React.ReactNode }) {
 
 function WatchedSummary({ watched }: { watched: MovieT[] }) {
 	const imdbRatings: number[] = watched.map((movie) => movie.imdbRating!);
-	const userRatings: number[] = watched.map((movie) => movie.userRating!);
-	const runtimes: number[] = watched.map((movie) => movie.runtime!);
+	const userRatings: number[] = watched.map((movie) => movie.UserRating!);
+	const runtimes: number[] = watched.map((movie) => movie.Runtime!);
 
 	const avgImdbRating = average(imdbRatings);
 	const avgUserRating = average(userRatings);
@@ -319,11 +384,11 @@ function WatchedMovie({ movie }: { movie: MovieT }) {
 				</p>
 				<p>
 					<span>🌟</span>
-					<span>{movie.userRating}</span>
+					<span>{movie.UserRating}</span>
 				</p>
 				<p>
 					<span>⏳</span>
-					<span>{movie.runtime} min</span>
+					<span>{movie.Runtime} min</span>
 				</p>
 			</div>
 		</li>
