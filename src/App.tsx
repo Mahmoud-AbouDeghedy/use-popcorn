@@ -299,6 +299,15 @@ function MovieDetails({
 		getMovieDetails();
 	}, [id]);
 
+	useEffect(() => {
+		if (!title) return;
+		document.title = `Movie | ${title}`;
+
+		return () => {
+			document.title = "usePopcorn";
+		};
+	}, [title]);
+
 	function handleAdd() {
 		const newMovie = {
 			imdbRating,
