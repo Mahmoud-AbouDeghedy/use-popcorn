@@ -41,28 +41,28 @@ const tempMovieData = [
 	},
 ];
 
-const tempWatchedData = [
-	{
-		imdbID: "tt1375666",
-		Title: "Inception",
-		Year: "2010",
-		Poster:
-			"https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
-		Runtime: 148,
-		imdbRating: 8.8,
-		UserRating: 10,
-	},
-	{
-		imdbID: "tt0088763",
-		Title: "Back to the Future",
-		Year: "1985",
-		Poster:
-			"https://m.media-amazon.com/images/M/MV5BZmU0M2Y1OGUtZjIxNi00ZjBkLTg1MjgtOWIyNThiZWIwYjRiXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg",
-		Runtime: 116,
-		imdbRating: 8.5,
-		UserRating: 9,
-	},
-];
+// const tempWatchedData = [
+// 	{
+// 		imdbID: "tt1375666",
+// 		Title: "Inception",
+// 		Year: "2010",
+// 		Poster:
+// 			"https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
+// 		Runtime: 148,
+// 		imdbRating: 8.8,
+// 		UserRating: 10,
+// 	},
+// 	{
+// 		imdbID: "tt0088763",
+// 		Title: "Back to the Future",
+// 		Year: "1985",
+// 		Poster:
+// 			"https://m.media-amazon.com/images/M/MV5BZmU0M2Y1OGUtZjIxNi00ZjBkLTg1MjgtOWIyNThiZWIwYjRiXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg",
+// 		Runtime: 116,
+// 		imdbRating: 8.5,
+// 		UserRating: 9,
+// 	},
+// ];
 
 const average = (arr: number[]) =>
 	arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -71,10 +71,13 @@ const KEY = "671ae6e0";
 export default function App() {
 	const [query, setQuery] = useState("");
 	const [movies, setMovies] = useState(tempMovieData);
-	const [watched, setWatched] = useState<MovieT[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState("");
 	const [selectedId, setSelectedId] = useState<null | string>(null);
+	const [watched, setWatched] = useState<MovieT[]>(() => {
+		const storedValue = localStorage.getItem("watched");
+		return JSON.parse(storedValue!);
+	});
 
 	function handleSelectedId(id: string) {
 		if (id === selectedId) setSelectedId(null);
@@ -91,6 +94,10 @@ export default function App() {
 	function handleDeleteWatched(id: string) {
 		setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
 	}
+
+	useEffect(() => {
+		localStorage.setItem("watched", JSON.stringify(watched));
+	}, [watched]);
 
 	useEffect(() => {
 		const controller = new AbortController();
