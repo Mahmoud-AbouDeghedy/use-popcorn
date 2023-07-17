@@ -124,6 +124,8 @@ export default function App() {
 			setMovies([]);
 			return;
 		}
+
+		handleCloseMovie();
 		fetchMovies();
 
 		return () => controller.abort();
