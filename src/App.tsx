@@ -2,13 +2,14 @@ import { useEffect, useState, useRef } from "react";
 
 import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
+import { useLocalStorageState } from "./useLocalStorageState";
 
-type MovieT = {
+export type MovieT = {
 	imdbID?: string;
 	Title?: string;
 	Year?: string;
 	Poster?: string;
-	Runtime?: number;
+	Runtime?: string;
 	imdbRating?: number;
 	UserRating?: number;
 	Plot?: string;
@@ -50,10 +51,8 @@ export default function App() {
 	const [query, setQuery] = useState("");
 
 	const [selectedId, setSelectedId] = useState<null | string>(null);
-	const [watched, setWatched] = useState<MovieT[]>(() => {
-		const storedValue = localStorage.getItem("watched");
-		return JSON.parse(storedValue!);
-	});
+
+	const [watched, setWatched] = useLocalStorageState([], "watched");
 
 	function handleSelectedId(id: string) {
 		if (id === selectedId) setSelectedId(null);
@@ -70,10 +69,6 @@ export default function App() {
 	function handleDeleteWatched(id: string) {
 		setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
 	}
-
-	useEffect(() => {
-		localStorage.setItem("watched", JSON.stringify(watched));
-	}, [watched]);
 
 	const { movies, isLoading, error } = useMovies(query, handleCloseMovie);
 
@@ -389,7 +384,9 @@ function Box({ children }: { children: React.ReactNode }) {
 function WatchedSummary({ watched }: { watched: MovieT[] }) {
 	const imdbRatings: number[] = watched.map((movie) => movie.imdbRating!);
 	const userRatings: number[] = watched.map((movie) => movie.UserRating!);
-	const runtimes: number[] = watched.map((movie) => movie.Runtime!);
+	const runtimes: number[] = watched.map(
+		(movie) => +movie.Runtime?.split(" ")[0]!
+	);
 
 	const avgImdbRating = average(imdbRatings);
 	const avgUserRating = average(userRatings);
