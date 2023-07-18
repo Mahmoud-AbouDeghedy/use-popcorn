@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import StarRating from "./StarRating";
 
@@ -221,6 +221,22 @@ function Search({
 	query: string;
 	setQuery: React.Dispatch<React.SetStateAction<string>>;
 }) {
+	const inputEl = useRef<HTMLInputElement>(null);
+
+	useEffect(() => {
+		function cb(e: KeyboardEvent) {
+			if (document.activeElement === inputEl.current) return;
+			if (e.code === "Enter") {
+				if (inputEl.current) inputEl.current.focus();
+				setQuery("");
+			}
+		}
+
+		document.addEventListener("keydown", cb);
+
+		return () => document.removeEventListener("keydown", cb);
+	}, [setQuery]);
+
 	return (
 		<input
 			className="search"
@@ -228,6 +244,7 @@ function Search({
 			placeholder="Search movies..."
 			value={query}
 			onChange={(e) => setQuery(e.target.value)}
+			ref={inputEl}
 		/>
 	);
 }
