@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import { MovieT } from "./App";
+import { MovieT } from "../App";
 
 export function useLocalStorageState(
 	initialState: MovieT[],
