@@ -63,9 +63,9 @@ export default function App() {
 		<>
 			<NavBar>
 				<Search query={query} setQuery={setQuery} />
-
 				<NumResults numResults={movies.length} />
 			</NavBar>
+
 			<Main>
 				<Box>
 					{isLoading && <Loader />}
@@ -74,6 +74,7 @@ export default function App() {
 					)}
 					{error && <ErrorMessage message={error} />}
 				</Box>
+
 				<Box>
 					{selectedId ? (
 						<MovieDetails
